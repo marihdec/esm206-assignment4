@@ -30,11 +30,10 @@ bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
 
 # Juvenile hare investigations
 
-## Trap counts
+## Annual juvenile hare trap counts
 
 - Transform the data to separate year into its own column
-- Summarize the data to get a count of trapped hares per year
-- Create a plot of trapped hare counts per year
+
 ```{r}
 hares_year <- bonanza_hares %>%
   mutate(date = mdy(date)) %>% # change class to date
@@ -43,17 +42,40 @@ hares_year <- bonanza_hares %>%
            sep = "-", # separate at dash
            extra = "merge", # combine if second dash present
            remove = TRUE) # remove original date column
+```
 
+- Summarize the data to get a count of trapped hares per year
+
+```{r}
 hares_summary <- hares_year %>%
   group_by(year) %>% 
   summarize(hare_count = n()) # summarize hares_year by year and count of hares trapped
+```
 
+- Create a plot of trapped hare counts per year
+
+```{r}
 ggplot(data = hares_summary, aes(x = year, y = hare_count)) + # create a plot of hare trapped counts per year
   geom_col(fill = "darkolivegreen") + # in a bar graph where the bars are colored olive green
   theme(axis.text.x = element_text(angle = 90)) + # rotate x-axis labels for easier reading
   labs(x = "Year", # label axes
        y = "Count",
        title = "Count of hares trapped per year") # add graph title
+  
 ```
 
+Figure 1. Count of hares trapped per year: Snowshoe hares were trapped and released over the course of 1998-2012 at five locations in the Tanana Valley in Alaska.
 
+### Major takeaways
+
+The most hares were trapped and counted in 2009 for a total of 410. The least hares were trapped and counted in 2002 for a total of 38. The mean number of snowshoe hare observations from 1998-2012 is `r sum(hares_summary$hare_count)/15` and the median value is `r median(hares_summary$hare_count)`. The trends in hare counts displayed on this graph seem in line with the metadata's assertion that these hare populations fluctuate on an 8-11 year timescale. The populations are low in the early 2000s then pick back up in the mid 2000s. To standardize juvenile hare populations for future analyses, I would recommend creating a more regular interval for hare data collection. The dates of hare collections are varied over the course of the years where data is presented. They frequently represent different times of year where hare populations may differ for various reasons that are not isolated by the nature of the study set up at present.
+
+## Visualize juvenile hare weights
+
+```{r}
+ggplot(data = bonanza_hares, aes(x = weight)) +
+  geom_histogram(na.rm = TRUE, aes(fill = grid), binwidth = 100) +
+  facet_wrap(~ sex) +
+  theme(axis.text.x = element_text(angle = 90))
+```
+do I want grid faceted or sex faceted?
