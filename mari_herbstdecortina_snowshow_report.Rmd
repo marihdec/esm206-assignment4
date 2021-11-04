@@ -2,7 +2,9 @@
 title: "assignment 4"
 author: "Mari Herbst"
 date: "11/3/2021"
-output: html_document
+output: 
+  html_document: 
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -11,5 +13,47 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
 library(janitor)
+library(lubridate)
 ```
+
+# Introduction
+
+# Data and analysis
+
+data citation: Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14
+
+Read in the data using here() to create a system agnostic file path.
+
+```{r}
+bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
+```
+
+# Juvenile hare investigations
+
+## Trap counts
+
+- Transform the data to separate year into its own column
+- Summarize the data to get a count of trapped hares per year
+- Create a plot of trapped hare counts per year
+```{r}
+hares_year <- bonanza_hares %>%
+  mutate(date = mdy(date)) %>% # change class to date
+  separate(col = date, # separate date column
+           into = c("year", "month-day"), # into
+           sep = "-", # separate at dash
+           extra = "merge", # combine if second dash present
+           remove = TRUE) # remove original date column
+
+hares_summary <- hares_year %>%
+  group_by(year) %>% 
+  summarize(hare_count = n()) # summarize hares_year by year and count of hares trapped
+
+ggplot(data = hares_summary, aes(x = year, y = hare_count)) + # create a plot of hare trapped counts per year
+  geom_col(fill = "darkolivegreen") + # in a bar graph where the bars are colored olive green
+  theme(axis.text.x = element_text(angle = 90)) + # rotate x-axis labels for easier reading
+  labs(x = "Year", # label axes
+       y = "Count",
+       title = "Count of hares trapped per year") # add graph title
+```
+
 
