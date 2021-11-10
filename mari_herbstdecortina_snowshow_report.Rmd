@@ -1,5 +1,5 @@
 ---
-title: "assignment 4"
+title: "Assignment 4 - Mari Herbst de Cortina"
 author: "Mari Herbst"
 date: "11/3/2021"
 output: 
@@ -15,6 +15,7 @@ library(here)
 library(lubridate)
 library(kableExtra)
 library(ggbeeswarm)
+library(effsize)
 ```
 
 # Introduction
@@ -149,6 +150,9 @@ sd_male <- sd(female_hares, na.rm = TRUE)
 
 # t-test
 hare_ttest <- t.test(female_hares, male_hares)
+
+# find effect size
+hare_effsize <- cohen.d(female_hares, male_hares, na.rm = TRUE)
 ```
 
-On average, male snowshoe hares weigh more than female snowshoe hares, `r round(mean_male, 2)`g $\pm$ `r round(sd_male, 2)`g and `r round(mean_female, 2)`g $\pm$ `r round(sd_female, 2)`g, respectively (mean (g) $\pm$ one standard deviation (g)). The absolute difference in means is `r round((mean_male-mean_female), 2)`g, which amounts to a `r round((mean_male - mean_female)/((mean_male + mean_female)/2) * 100, 2)`% difference in means. This difference in means is significant (Welch's Two Sample t-test: t(`r round(hare_ttest$parameter, 2)`) = `r round(hare_ttest$statistic, 2)`, p = `r hare_ttest$p.value`).
+On average, male snowshoe hares weigh more than female snowshoe hares, `r round(mean_male, 2)`g $\pm$ `r round(sd_male, 2)`g and `r round(mean_female, 2)`g $\pm$ `r round(sd_female, 2)`g, respectively (mean (g) $\pm$ one standard deviation (g)). The absolute difference in means is `r round((mean_male-mean_female), 2)`g, which amounts to a `r round((mean_male - mean_female)/((mean_male + mean_female)/2) * 100, 2)`% difference in means. This difference in means is significant (Welch's Two Sample t-test: t(`r round(hare_ttest$parameter, 2)`) = `r round(hare_ttest$statistic, 2)`, p = `r hare_ttest$p.value`), but the effect size, `r round(hare_effsize$estimate, 2)`, is small.
