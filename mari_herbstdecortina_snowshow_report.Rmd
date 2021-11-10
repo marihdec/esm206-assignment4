@@ -45,7 +45,7 @@ bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
 # Transform the data to separate year into its own column
 hares_year <- bonanza_hares %>%
   mutate(date = mdy(date)) %>% # change class to date
-  mutate(year = year(date))
+  mutate(year = year(date)) # add column for just year
 ```
 
 
@@ -76,7 +76,7 @@ Figure 1. Count of hares trapped per year: Snowshoe hares were trapped and relea
 
 ### Major takeaways
 
-The most juvenile hares recorded in a single year was `r max(hares_summary$hare_count)`. No juvenile hares were trapped in 1998, 2002, nor 2009. The mean number of juvenile snowshoe hare observations from 1998-2012 is `r sum(hares_summary$hare_count)/12` and the median value is `r median(hares_summary$hare_count)`. The trends in hare counts displayed on this graph show a decline in juvenile hare counts over time with occasional resurgances, though this may be due to irregularity in collection. To standardize juvenile hare populations for future analyses, I would recommend creating a more regular interval for hare data collection. The dates of hare collections are varied over the course of the years where data is presented. They frequently represent different times of year where hare populations may differ for various reasons that are not isolated by the nature of the study set up at present. Additionally, there are a different number of days when observations were taken across the different years which likely influenced the number of hares recorded.
+The most juvenile hares recorded in a single year was `r max(hares_summary$hare_count)`. No juvenile hares were trapped in 1998, 2002, nor 2009. The mean number of juvenile snowshoe hare observations from 1998-2012 is `r sum(hares_summary$hare_count)/12` and the median value is `r median(hares_summary$hare_count)`. The trends in hare counts displayed on this graph show a decline in juvenile hare counts over time with occasional resurgences, though this may be due to irregularity in collection. To standardize juvenile hare populations for future analyses, I would recommend creating a more regular interval for hare data collection. The dates of hare collections are varied over the course of the years where data is presented. They frequently represent different times of year where hare populations may differ for various reasons that are not isolated by the nature of the study set up at present. Additionally, there are a different number of days when observations were taken across the different years which likely influenced the number of hares recorded.
 
 ## Visualize juvenile hare weights
 
@@ -86,7 +86,8 @@ bonanza_clean <- bonanza_hares %>%
   filter(age == "j") %>% # filter for juvenile hares
   mutate(sex = case_when( # when sex =
          sex == "m" ~ "male", # "m" change to "male"
-         sex == "f" ~ "female")) %>%
+         sex == "f" ~ "female",
+         TRUE ~ "unknown")) %>%
   mutate(grid = case_when( # when grid =
          grid == "bonbs" ~ "Bonanza Black Spruce", # "bonbs" change to "Bonanza Black Spruce"
          grid == "bonrip" ~ "Bonanza Riparian",
@@ -96,7 +97,7 @@ bonanza_clean <- bonanza_hares %>%
 ```{r, message = FALSE, warning = FALSE}
 # Create a plot of juvenile hare weights by sex and collection site (grid)
 ggplot(data = bonanza_clean, aes(x = sex, y = weight)) + # only need 1 variable for a histogram, the other is count
-  geom_beeswarm(na.rm = FALSE, aes(color = sex)) + # include NA values, assign color depending on sex
+  geom_beeswarm(na.rm = FALSE, aes(color = sex), show.legend = FALSE) + # include NA values, assign color depending on sex
   facet_wrap(~ grid) + # divide data by collection site
   geom_boxplot(fill = NA, outlier.colour = NA) + # add a boxplot to visualize summary statistics
   theme_minimal() +
@@ -107,12 +108,15 @@ ggplot(data = bonanza_clean, aes(x = sex, y = weight)) + # only need 1 variable 
   labs(x = "sex", y = "weight (g)", title = "Juvenile Hare Weight Distribution by Sex and Grid Site") # label axes and title
 ```
 
-Figure 2. Juvenile Hare Weight Distributions by Sex and Grid Site: Snowshoe hare weight distributions are examined across the Bonanza Black Spruce, Bonanza Mature, and Bonanza Riparian data collection sites. NA indicates the sex was not identified. The middle line of the box plot represents the median value of the data set, the distances between the median line and the upper and lower box boundaries indicate the middle number between the median and further extreme value (highest or lowest, respectively). The whiskers extend form the box boundaries (explained above) to the most extreme value in either direction.
+Figure 2. Juvenile Hare Weight Distributions by Sex and Grid Site: Snowshoe hare weight distributions are examined across the Bonanza Black Spruce, Bonanza Mature, and Bonanza Riparian data collection sites. "Unknown" indicates the sex was not identified. The middle line of the box plot represents the median value of the data set, the distances between the median line and the upper and lower box boundaries indicate the middle number between the median and further extreme value (highest or lowest, respectively). The whiskers extend from the box boundaries and indicate the variance outside the upper and lower quartiles.
+
+### Major takeaways
+
+There is wide variance among juvenile hare weights within sexes. The Bonanza Riparian collection site has the most observations and the widest variance in both male and female weights.
 
 ## Juvenile weight comparison by sex
 
 ```{r, message = FALSE, warning = FALSE}
-
 # create a data frame for only juvenile males and females
 hares_j_m_f <- bonanza_clean %>% # start with bonanza_clean
   filter(sex == "male" | sex == "female") # filter for observations where sex is male or female
@@ -120,7 +124,7 @@ hares_j_m_f <- bonanza_clean %>% # start with bonanza_clean
 # Create a table of summary statistics for hare weights
 weight_summary_stats <- hares_j_m_f %>%
   group_by(sex) %>%
-  summarize(mean_weight = round(mean(weight, na.rm = TRUE), 2), # 'na.rm = TRUE' to remove NA values, round() to choose number of digits
+  summarize(mean_weight = round(mean(weight, na.rm = TRUE), 2), # summarize and name columns, 'na.rm = TRUE' to remove NA values, round() to choose number of digits
             median_weight = median(weight, na.rm = TRUE), 
             sd_weight = round(sd(weight, na.rm = TRUE), 2),
             sample_size = n())
@@ -136,15 +140,15 @@ weight_summary_stats %>%
 # exploratory visualizations
 
 # histogram to check for normal distribution
-ggplot(data = hares_j_m_f, aes(x = weight)) +
-  geom_histogram(aes(fill = sex)) +
-  facet_wrap(~ sex)
+ggplot(data = hares_j_m_f, aes(x = weight)) + # count by weight
+  geom_histogram(aes(fill = sex)) + # color the data points by sex
+  facet_wrap(~ sex) # facet by sex
 
 # q-q plot to check for normal distribution
 ggplot(data = hares_j_m_f, aes(sample = weight)) +
   stat_qq() +
-  facet_wrap(~ sex) +
-  theme_minimal()
+  facet_wrap(~ sex) + # facet by sex
+  theme_minimal() # theme for styling
 ```
 
 ### t-test and major takeaways
@@ -175,21 +179,6 @@ On average, male snowshoe hares weigh more than female snowshoe hares, `r round(
 
 ## Hare weight and hind foot length
 
-```{r, message = FALSE, warning = FALSE}
-ggplot(data = bonanza_clean, aes(x = hindft, y = weight)) +
-  geom_point(color = "deeppink3") +
-  theme_minimal() +
-  theme(text = element_text(family = "Calibri", # change the font and bold for easier reading
-                            face = "bold"),
-        plot.title = element_text(hjust = 0.5)) +  # center plot title
-  labs(x = "hind foot length (mm)",
-       y ="weight (g)",
-       title = "Juvenile Hare Weight by Hind Foot Length") +
-  geom_smooth(method = "lm", color = "lightslateblue")
-```
-
-Figure 3. Juvenile Hare Weight by Hind Foot Length: An exploration of the trends of `r sum(weight_summary_stats$sample_size)` snowshoe hares' weights (g) relative to their hind foot lengths (mm).
-
 ```{r, include = FALSE, message = FALSE, warning = FALSE}
 # explore the linearity of hare weights/hind feet length relationship
 hare_model <- lm(weight ~ hindft, data = bonanza_clean)
@@ -209,6 +198,21 @@ hare_pearsonr <- cor.test(bonanza_clean$weight, bonanza_clean$hindft)
 # explore scedasticity
 plot(hare_model)
 ```
+
+```{r, message = FALSE, warning = FALSE}
+ggplot(data = bonanza_clean, aes(x = hindft, y = weight)) +
+  geom_point(color = "deeppink3") +
+  theme_minimal() +
+  theme(text = element_text(family = "Calibri", # change the font and bold for easier reading
+                            face = "bold"),
+        plot.title = element_text(hjust = 0.5)) +  # center plot title
+  labs(x = "hind foot length (mm)", # name axes and title
+       y ="weight (g)",
+       title = "Juvenile Hare Weight by Hind Foot Length") +
+  geom_smooth(method = "lm", color = "lightslateblue") # add regression line
+```
+
+Figure 3. Juvenile Hare Weight by Hind Foot Length: An exploration of the trends of `r sum(weight_summary_stats$sample_size)` snowshoe hares' weights (g) relative to their hind foot lengths (mm). Linear regression line included ($\beta$~1~ = `r round(hare_model_coeff$estimate[2], 2)` $\frac{g}{mm}$, Pearson's r: `r round(hare_pearsonr$estimate, 2)`, R$^2$ = `r round(summary(hare_model)$r.squared, 3)`).
 
 ### Major takeaways
 
